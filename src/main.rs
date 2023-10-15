@@ -4,6 +4,8 @@ use crate::chunks::opcode::Opcode;
 use crate::chunks::Write;
 
 mod chunks;
+mod vm;
+mod disassemble;
 
 fn main() {
     let mut chunk = Chunk::default();
@@ -13,5 +15,5 @@ fn main() {
     chunk.write(constant_index, 123);
 
     chunk.write(Opcode::Return, 123);
-    chunk.disassemble("test chunks");
+    disassemble::chunk(&chunk, "test chunks");
 }

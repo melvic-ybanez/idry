@@ -23,46 +23,16 @@ impl Chunk {
         Self { code, constants: Values::default(), lines: vec![] }
     }
 
-    pub fn disassemble(&self, name: &str) {
-        println!("== {name} ==");
-
-        let mut offset = 0;
-
-        while offset < self.code.len() {
-            offset = self.disassemble_instruction(offset);
-        }
-    }
-
     pub fn add_constant(&mut self, value: Value) -> usize {
-        self.constants.write_value(value);
+        self.constants.write(value);
         self.constants.count() - 1
     }
 
-    fn disassemble_instruction(&self, offset: usize) -> usize {
-        print!("{:04} ", offset);
-
-        if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
-            print!("   | ")
-        } else {
-            print!("{:4} ", self.lines[offset])
-        }
-
-        let instruction: &Opcode = &self.code[offset].into();
-        let name = instruction.show();
-        match instruction {
-            Opcode::Constant => self.constant_instruction(name.as_str(), offset),
-            Opcode::Return => {
-                print!("{}", name);
-                offset + 1
-            }
-        }
-    }
-
-    fn constant_instruction(&self, name: &str, offset: usize) -> usize {
+    pub fn constant_instruction(&self, name: &str, offset: usize) -> usize {
         // constant index is seated next to the constant opcode
         let constant_index = self.code[offset + 1];
         print!("{:16} {:4} '", name, constant_index);
-        values::print(self.constants.values[constant_index as usize]);
+        values::print(self.constants.values()[constant_index as usize]);
         println!("'");
 
         // we are moving two offsets forward (1 for the opcode
@@ -72,6 +42,14 @@ impl Chunk {
 
     pub fn code(&self) -> &Code {
         &self.code
+    }
+
+    pub fn constants(&self) -> &Values {
+        &self.constants
+    }
+
+    pub fn lines(&self) -> &Vec<u32> {
+        &self.lines
     }
 }
 
@@ -83,8 +61,7 @@ impl Default for Chunk {
 
 impl Write<Opcode> for Chunk {
     fn write(&mut self, opcode: Opcode, line: u32) {
-        let opcode_byte: Byte = opcode.into();
-        self.write(opcode_byte, line);
+        self.write(Byte::from(opcode), line);
     }
 }
 
