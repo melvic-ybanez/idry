@@ -2,6 +2,7 @@ use chunks::Chunk;
 
 use crate::chunks::opcode::Opcode;
 use crate::chunks::Write;
+use crate::vm::VM;
 
 mod chunks;
 mod vm;
@@ -13,7 +14,10 @@ fn main() {
     let constant_index = chunk.add_constant(1.2);
     chunk.write(Opcode::Constant, 123);
     chunk.write(constant_index, 123);
+    chunk.write(Opcode::Negate, 123);
 
     chunk.write(Opcode::Return, 123);
     disassemble::chunk(&chunk, "test chunks");
+
+    VM::interpret(chunk);
 }

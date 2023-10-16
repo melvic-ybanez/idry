@@ -33,7 +33,7 @@ impl Chunk {
         let constant_index = self.code[offset + 1];
         print!("{:16} {:4} '", name, constant_index);
         values::print(self.constants.values()[constant_index as usize]);
-        println!("'");
+        print!("'\n");
 
         // we are moving two offsets forward (1 for the opcode
         // and another for the constant)

@@ -26,9 +26,12 @@ pub fn instruction(chunk: &Chunk, offset: usize) -> usize {
     let name = instruction.show();
     match instruction {
         Opcode::Constant => chunk.constant_instruction(name.as_str(), offset),
-        Opcode::Return => {
-            print!("{}", name);
-            offset + 1
-        }
+        Opcode::Negate => simple_instruction(&name, offset),
+        Opcode::Return => simple_instruction(&name, offset),
     }
+}
+
+fn simple_instruction(name: &str, offset: usize) -> usize {
+    println!("{}", name);
+    offset + 1
 }
