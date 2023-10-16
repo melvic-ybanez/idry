@@ -2,7 +2,6 @@ use crate::chunks::{Byte, Chunk, values};
 use crate::chunks::opcode::Opcode;
 use crate::chunks::values::Value;
 use crate::disassemble;
-use crate::vm::VmResult::InterpreterError;
 
 pub struct VM {
     chunk: Chunk,
@@ -38,12 +37,11 @@ impl VM {
                 Opcode::Return => {
                     values::print(self.pop_unsafe());
                     println!();
-                    break VmResult::Ok
+                    break VmResult::Ok;
                 }
                 Opcode::Constant => {
                     let constant = self.read_constant();
                     self.push(constant);
-                    println!();
                 }
                 Opcode::Negate => {
                     let pop = -self.pop_unsafe();
@@ -81,11 +79,6 @@ impl VM {
 
     fn pop_unsafe(&mut self) -> Value {
         self.stack.pop().unwrap()
-    }
-
-    fn pop_with<F>(&mut self, f: F) -> VmResult
-        where F: Fn(Value) -> VmResult {
-        self.pop().map(f).unwrap_or(InterpreterError)
     }
 }
 
