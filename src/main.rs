@@ -1,35 +1,44 @@
-use chunks::Chunk;
+use std::io;
+use std::io::{BufRead, Read, Write as OtherWrite};
 
-use crate::chunks::opcode::Opcode;
 use crate::chunks::Write;
-use crate::vm::VM;
 
 mod chunks;
 mod vm;
 mod disassemble;
 
 fn main() {
-    let mut chunk = Chunk::default();
+    let args = std::env::args();
+    if args.len() == 1 {
+        repl();
+    } else if args.len() == 2 {
+        run_script();
+    } else {
+        eprint!("Usage: dry [path]\n");
+    }
+}
 
-    let constant_index = chunk.add_constant(1.2);
-    chunk.write(Opcode::Constant, 123);
-    chunk.write(constant_index, 123);
+fn repl() {
+    loop {
+        print!("dry> ");
+        io::stdout().flush().expect("Can't flush stdout");
 
-    let constant_index = chunk.add_constant(3.4);
-    chunk.write(Opcode::Constant, 123);
-    chunk.write(constant_index, 123);
+        let line = io::stdin().lock().lines().next()
+            .expect("There's no next line")
+            .expect("Unable to read next line");
 
-    chunk.write(Opcode::Add, 123);
+        if line == "exit" {
+            break;
+        }
 
-    let constant_index = chunk.add_constant(5.6);
-    chunk.write(Opcode::Constant, 123);
-    chunk.write(constant_index, 123);
+        interpret(line.as_str());
+    }
+}
 
-    chunk.write(Opcode::Divide, 123);
-    chunk.write(Opcode::Negate, 123);
+fn run_script() {
+    // TODO: Implement running of script
+}
 
-    chunk.write(Opcode::Return, 123);
-    disassemble::chunk(&chunk, "test chunks");
-
-    VM::interpret(chunk);
+fn interpret(line: &str) {
+    // TODO: Interpret lines
 }

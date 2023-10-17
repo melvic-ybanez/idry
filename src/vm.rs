@@ -82,7 +82,7 @@ impl VM {
     }
 
     fn pop_unsafe(&mut self) -> Value {
-        self.stack.pop().unwrap()
+        self.stack.pop().expect("Unable to pop any value from stack")
     }
 
     fn bin_op<F>(&mut self, op: F) where F: Fn(Value, Value) -> Value {
