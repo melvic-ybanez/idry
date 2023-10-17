@@ -43,6 +43,10 @@ impl VM {
                     let constant = self.read_constant();
                     self.push(constant);
                 }
+                Opcode::Add => self.bin_op(|a, b| a + b),
+                Opcode::Subtract => self.bin_op(|a, b| a - b),
+                Opcode::Multiply => self.bin_op(|a, b| a * b),
+                Opcode::Divide => self.bin_op(|a, b| a / b),
                 Opcode::Negate => {
                     let pop = -self.pop_unsafe();
                     self.push(pop);
@@ -79,6 +83,12 @@ impl VM {
 
     fn pop_unsafe(&mut self) -> Value {
         self.stack.pop().unwrap()
+    }
+
+    fn bin_op<F>(&mut self, op: F) where F: Fn(Value, Value) -> Value {
+        let b = self.pop_unsafe();
+        let a = self.pop_unsafe();
+        self.push(op(a, b));
     }
 }
 

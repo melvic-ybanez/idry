@@ -28,6 +28,10 @@ pub fn instruction(chunk: &Chunk, offset: usize) -> usize {
         Opcode::Constant => chunk.constant_instruction(name.as_str(), offset),
         Opcode::Negate => simple_instruction(&name, offset),
         Opcode::Return => simple_instruction(&name, offset),
+        Opcode::Add => simple_instruction(&name, offset),
+        Opcode::Subtract => simple_instruction(&name, offset),
+        Opcode::Multiply => simple_instruction(&name, offset),
+        Opcode::Divide => simple_instruction(&name, offset)
     }
 }
 

@@ -7,6 +7,10 @@ use crate::chunks::Byte;
 #[derive(Debug, Copy, Clone, FromPrimitive)]
 pub enum Opcode {
     Constant,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
     Negate,
     Return,
 }
