@@ -1,10 +1,10 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 
 use num_derive::FromPrimitive;
 
 use crate::chunks::Byte;
 
-#[derive(Debug, Copy, Clone, FromPrimitive)]
+#[derive(Debug, Clone, FromPrimitive)]
 pub enum Opcode {
     Constant,
     Add,
@@ -17,13 +17,7 @@ pub enum Opcode {
 
 impl Opcode {
     pub fn show(&self) -> String {
-        ("OP_".to_owned() + &self.to_string()).to_uppercase()
-    }
-}
-
-impl Display for Opcode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        ("OP_".to_owned() + format!("{:?}", self).as_str()).to_uppercase()
     }
 }
 

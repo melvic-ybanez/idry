@@ -1,7 +1,12 @@
 use crate::chunks::{Byte, Chunk, values};
 use crate::chunks::opcode::Opcode;
 use crate::chunks::values::Value;
-use crate::disassemble;
+use crate::{compiler, disassemble};
+
+pub fn interpret(source: &str) -> VmResult {
+    compiler::compile(source);
+    VmResult::Ok
+}
 
 pub struct VM {
     chunk: Chunk,
@@ -14,11 +19,6 @@ pub struct VM {
 impl VM {
     pub fn new(chunk: Chunk) -> Self {
         VM { chunk, ip: 0, stack: vec![] }
-    }
-
-    pub fn interpret(chunk: Chunk) -> VmResult {
-        let mut vm = VM::new(chunk);
-        vm.run()
     }
 
     fn run(&mut self) -> VmResult {
@@ -94,6 +94,6 @@ impl VM {
 
 pub enum VmResult {
     Ok,
-    InterpreterError,
+    CompileError,
     RuntimeError,
 }
