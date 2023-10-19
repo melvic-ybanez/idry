@@ -1,8 +1,7 @@
 use std::{fs, io, process};
-use std::io::{BufRead, Read, Write as OtherWrite};
+use std::io::{BufRead, Write as OtherWrite};
 use std::path::Path;
 
-use crate::chunks::Write;
 use crate::vm::VmResult;
 
 mod chunks;
@@ -10,6 +9,8 @@ mod vm;
 mod disassemble;
 mod compiler;
 mod scanner;
+mod tokens;
+mod common;
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();

@@ -1,4 +1,5 @@
-pub type Line = u32;
+use crate::common::Line;
+use crate::tokens::{Token, TokenType};
 
 pub struct Scanner {
     start: usize,
@@ -14,34 +15,4 @@ impl Scanner {
     pub fn scan_token(&self) -> Token {
         Token::new(TokenType::Eof, self)
     }
-}
-
-pub struct Token {
-    line: Line,
-    kind: TokenType,
-    start: usize,
-    length: usize,
-}
-
-impl Token {
-    pub fn new(kind: TokenType, scanner: &Scanner) -> Self {
-        Token { line: 1, kind, start: 0, length: 0}
-    }
-
-    pub fn line(&self) -> Line {
-        self.line
-    }
-
-    pub fn kind(&self) -> &TokenType {
-        &self.kind
-    }
-
-    pub fn lexeme(&self) -> String {
-        "".to_owned()
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum TokenType {
-    Eof
 }

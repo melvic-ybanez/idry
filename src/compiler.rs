@@ -1,4 +1,6 @@
-use crate::scanner::{Line, Scanner, TokenType};
+use crate::common::Line;
+use crate::scanner::Scanner;
+use crate::tokens::TokenType;
 
 pub fn compile(source: &str) {
     let scanner = Scanner::new(source);
@@ -13,8 +15,8 @@ pub fn compile(source: &str) {
             print!("    | ");
         }
 
-        print!("{:?} '{}'", token.kind(), token.lexeme());
+        print!("{:?} '{}'", token.token_type(), token.lexeme());
 
-        if *token.kind() == TokenType::Eof { break; }
+        if *token.token_type() == TokenType::Eof { break; }
     }
 }
