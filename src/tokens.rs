@@ -1,16 +1,27 @@
 use crate::common::Line;
 use crate::scanner::Scanner;
 
-pub struct Token {
+pub struct Token<'a> {
     line: Line,
     token_type: TokenType,
-    start: usize,
-    length: usize,
+    lexeme: &'a str,
 }
 
-impl Token {
-    pub fn new(token_type: TokenType, scanner: &Scanner) -> Self {
-        Token { line: 1, token_type, start: 0, length: 0 }
+impl<'a> Token<'a> {
+    pub fn new(token_type: TokenType, scanner: &'a Scanner) -> Self {
+        Token {
+            line: scanner.line(),
+            token_type,
+            lexeme: &scanner.source()[scanner.start()..scanner.current()],
+        }
+    }
+
+    pub fn error(message: &'static str, scanner: &'a Scanner) -> Self {
+        Token {
+            token_type: TokenType::Error,
+            lexeme: message,
+            line: scanner.line(),
+        }
     }
 
     pub fn line(&self) -> Line {
@@ -41,7 +52,7 @@ pub enum TokenType {
     Dot,
     Semicolon,
     Error,
-    Eof
+    Eof,
 }
 
 #[derive(Debug, PartialEq)]
@@ -99,5 +110,5 @@ enum Keyword {
     Let,
     While,
     Lambda,
-    Import
+    Import,
 }

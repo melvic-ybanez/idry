@@ -3,7 +3,7 @@ use crate::scanner::Scanner;
 use crate::tokens::TokenType;
 
 pub fn compile(source: &str) {
-    let scanner = Scanner::new(source);
+    let mut scanner = Scanner::new(source);
     let mut line: i32 = -1;
     loop {
         let token = scanner.scan_token();
