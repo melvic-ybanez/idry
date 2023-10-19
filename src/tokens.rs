@@ -56,16 +56,16 @@ pub enum TokenType {
 }
 
 #[derive(Debug, PartialEq)]
-enum Arithmetic {
+pub enum Arithmetic {
     Minus,
     Plus,
     Slash,
-    Star,
+    Times,
     Modulo,
 }
 
 #[derive(Debug, PartialEq)]
-enum Bitwise {
+pub enum Bitwise {
     BAnd,
     BOr,
     BXor,
@@ -75,7 +75,7 @@ enum Bitwise {
 }
 
 #[derive(Debug, PartialEq)]
-enum Comparison {
+pub enum Comparison {
     NotEqual,
     Equal,
     EqualEqual,
@@ -86,14 +86,14 @@ enum Comparison {
 }
 
 #[derive(Debug, PartialEq)]
-enum Literal {
+pub enum Literal {
     Identifier,
     Str,
     Number,
 }
 
 #[derive(Debug, PartialEq)]
-enum Keyword {
+pub enum Keyword {
     And,
     Not,
     Or,
