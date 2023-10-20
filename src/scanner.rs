@@ -43,8 +43,22 @@ impl Scanner {
                 '&' => self.make_token(TokenType::Bitwise(Bitwise::BAnd)),
                 '|' => self.make_token(TokenType::Bitwise(Bitwise::BOr)),
                 '^' => self.make_token(TokenType::Bitwise(Bitwise::BXor)),
+                '"' => self.string(),
                 _ => Token::error("Unexpected character.", self)
             }
+        }
+    }
+
+    fn string(&mut self) -> Token {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' { self.next_line(); }
+            self.advance();
+        }
+
+        if self.is_at_end() { Token::error("Unterminated string", self) }
+        else {
+            self.advance();     // consume the closing quote
+            self.make_token(TokenType::Literal(Literal::Str))
         }
     }
 
