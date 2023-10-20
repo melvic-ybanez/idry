@@ -1,6 +1,6 @@
 use std::thread::current;
 use crate::common::Line;
-use crate::tokens::{Bitwise, Comparison, Keyword, Token, TokenType};
+use crate::tokens::{Bitwise, Comparison, Keyword, Literal, Token, TokenType};
 use crate::tokens::Arithmetic;
 
 pub struct Scanner {
@@ -16,6 +16,7 @@ impl Scanner {
     }
 
     pub fn scan_token(&mut self) -> Token {
+        self.skip_whitespace();
         self.start = self.current;
         if self.is_at_end() {
             self.make_token(TokenType::Eof)
@@ -34,9 +35,11 @@ impl Scanner {
                 '-' => self.make_token(TokenType::Arithmetic(Arithmetic::Minus)),
                 ';' => self.make_token(TokenType::Semicolon),
                 '!' => self.make_token_or_else(
-                    '=', TokenType::Comparison(Comparison::NotEqual), TokenType::Keyword(Keyword::Not)),
+                    '=', TokenType::Comparison(Comparison::NotEqual),
+                    TokenType::Keyword(Keyword::Not)),
                 '=' => self.make_token_or_else(
-                    '=', TokenType::Comparison(Comparison::EqualEqual), TokenType::Comparison(Comparison::Equal)),
+                    '=', TokenType::Comparison(Comparison::EqualEqual),
+                    TokenType::Comparison(Comparison::Equal)),
                 '&' => self.make_token(TokenType::Bitwise(Bitwise::BAnd)),
                 '|' => self.make_token(TokenType::Bitwise(Bitwise::BOr)),
                 '^' => self.make_token(TokenType::Bitwise(Bitwise::BXor)),
@@ -50,10 +53,18 @@ impl Scanner {
         self.source.as_bytes()[self.current - 1] as char
     }
 
+    fn peek(&self) -> char {
+        self.source_at(self.current)
+    }
+
+    fn peek_next(&self) -> char {
+        if self.is_at_end() { '\0' } else { self.source_at(self.current + 1) }
+    }
+
     fn match_char(&mut self, expected: char) -> bool {
         if self.is_at_end() {
             false
-        } else if self.current_char() != expected {
+        } else if self.peek() != expected {
             false
         } else {
             self.current += 1;
@@ -61,8 +72,25 @@ impl Scanner {
         }
     }
 
-    fn current_char(&self) -> char {
-        self.source_at(self.current)
+    fn skip_whitespace(&mut self) {
+        loop {
+            let c = self.peek();
+            match c {
+                ' ' | '\r' | '\t' => { self.advance(); }
+                '\n' => {
+                    self.next_line();
+                    self.advance();
+                }
+                '/' => if self.peek_next() == '/' {
+                    while self.peek() != '\n' && !self.is_at_end() { self.advance(); }
+                } else { break; }
+                _ => break
+            }
+        }
+    }
+
+    fn next_line(&mut self) {
+        self.line += 1;
     }
 
     fn source_at(&self, index: usize) -> char {
