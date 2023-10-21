@@ -44,6 +44,7 @@ pub enum TokenType {
     Comparison(Comparison),
     Literal(Literal),
     Keyword(Keyword),
+    Identifier,
     LeftParen,
     RightParen,
     LeftBrace,
@@ -87,7 +88,6 @@ pub enum Comparison {
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-    Identifier,
     Str,
     Number,
 }

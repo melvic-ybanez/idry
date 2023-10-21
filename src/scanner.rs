@@ -2,6 +2,7 @@ use std::thread::current;
 use crate::common::Line;
 use crate::tokens::{Bitwise, Comparison, Keyword, Literal, Token, TokenType};
 use crate::tokens::Arithmetic;
+use std::str;
 
 pub struct Scanner {
     source: String,
@@ -43,22 +44,82 @@ impl Scanner {
                 '&' => self.make_token(TokenType::Bitwise(Bitwise::BAnd)),
                 '|' => self.make_token(TokenType::Bitwise(Bitwise::BOr)),
                 '^' => self.make_token(TokenType::Bitwise(Bitwise::BXor)),
-                '"' => self.string(),
+                '"' => self.scan_string(),
+                c if is_digit(c) => self.scan_number(),
+                c if is_alpha(c) => self.scan_identifier(),
                 _ => Token::error("Unexpected character.", self)
             }
         }
     }
 
-    fn string(&mut self) -> Token {
+    fn scan_string(&mut self) -> Token {
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' { self.next_line(); }
             self.advance();
         }
 
-        if self.is_at_end() { Token::error("Unterminated string", self) }
-        else {
+        if self.is_at_end() { Token::error("Unterminated string", self) } else {
             self.advance();     // consume the closing quote
             self.make_token(TokenType::Literal(Literal::Str))
+        }
+    }
+
+    fn scan_number(&mut self) -> Token {
+        // scan the whole number part
+        while is_digit(self.peek()) {
+            self.advance();
+        }
+
+        // scan the fractional part, if any
+        if self.peek() == '.' && is_digit(self.peek_next()) {
+            self.advance(); // consume the '.'
+            while is_digit(self.peek()) { self.advance(); }
+        }
+
+        self.make_token(TokenType::Literal(Literal::Number))
+    }
+
+    fn scan_identifier(&mut self) -> Token {
+        while is_alpha(self.peek()) || is_digit(self.peek()) {
+            self.advance();
+        }
+
+        self.make_token(self.identifier_type())
+    }
+
+    fn identifier_type(&self) -> TokenType {
+        match self.source_at(self.start) {
+            'a' => self.check_keyword(1, 2, "nd", TokenType::Keyword(Keyword::And)),
+            'o' => self.check_keyword(1, 2, "or", TokenType::Keyword(Keyword::Or)),
+            'c' => self.check_keyword(1, 4, "lass", TokenType::Keyword(Keyword::Class)),
+            'e' => self.check_keyword(1, 3, "lse", TokenType::Keyword(Keyword::Else)),
+            't' => self.check_keyword(1, 3, "rue", TokenType::Keyword(Keyword::True)),
+            'w' => self.check_keyword(1, 4, "hile", TokenType::Keyword(Keyword::While)),
+            'd' => self.check_keyword(1, 2, "ef", TokenType::Keyword(Keyword::Def)),
+            'r' => self.check_keyword(1, 4, "eturn", TokenType::Keyword(Keyword::Return)),
+            's' => self.check_keyword(1, 4, "elf", TokenType::Keyword(Keyword::Self_)),
+            // TODO: implement comparison with branching paths
+            _ => TokenType::Identifier
+        }
+    }
+
+    fn check_keyword(
+        &self,
+        start: usize,
+        length: usize,  // TODO: see if we need this (instead of using `rest.length`)
+        rest: &str,
+        keyword_type: TokenType,
+    ) -> TokenType {
+        let same_length = self.current - self.start == start + length;
+        let same_str = {
+            let source_str = str::from_utf8(&self.source.as_bytes()[self.start + start..length]).unwrap();
+            source_str == rest
+        };
+
+        if same_length && same_str {
+            keyword_type
+        } else {
+            TokenType::Identifier
         }
     }
 
@@ -139,4 +200,12 @@ impl Scanner {
         let token_type = if self.match_char(expected) { if_match } else { or_else };
         self.make_token(token_type)
     }
+}
+
+fn is_digit(c: char) -> bool {
+    c.is_digit(10)
+}
+
+fn is_alpha(c: char) -> bool {
+    (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
 }
