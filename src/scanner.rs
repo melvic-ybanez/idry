@@ -1,8 +1,8 @@
-use std::thread::current;
+use std::str;
+
 use crate::common::Line;
 use crate::tokens::{Bitwise, Comparison, Keyword, Literal, Token, TokenType};
 use crate::tokens::Arithmetic;
-use std::str;
 
 pub struct Scanner {
     source: String,
@@ -89,35 +89,57 @@ impl Scanner {
 
     fn identifier_type(&self) -> TokenType {
         match self.source_at(self.start) {
-            'a' => self.check_keyword(1, 2, "nd", TokenType::Keyword(Keyword::And)),
-            'o' => self.check_keyword(1, 2, "or", TokenType::Keyword(Keyword::Or)),
-            'c' => self.check_keyword(1, 4, "lass", TokenType::Keyword(Keyword::Class)),
-            'e' => self.check_keyword(1, 3, "lse", TokenType::Keyword(Keyword::Else)),
-            't' => self.check_keyword(1, 3, "rue", TokenType::Keyword(Keyword::True)),
-            'w' => self.check_keyword(1, 4, "hile", TokenType::Keyword(Keyword::While)),
-            'd' => self.check_keyword(1, 2, "ef", TokenType::Keyword(Keyword::Def)),
-            'r' => self.check_keyword(1, 4, "eturn", TokenType::Keyword(Keyword::Return)),
-            's' => self.check_keyword(1, 4, "elf", TokenType::Keyword(Keyword::Self_)),
-            // TODO: implement comparison with branching paths
+            'a' => self.check_keyword(1, "nd", Keyword::And),
+            'o' => self.check_keyword(1, "or", Keyword::Or),
+            'c' => self.check_keyword(1, "lass", Keyword::Class),
+            'e' => self.check_keyword(1, "lse", Keyword::Else),
+            't' => self.check_keyword(1, "rue", Keyword::True),
+            'w' => self.check_keyword(1, "hile", Keyword::While),
+            'd' => self.check_keyword(1, "ef", Keyword::Def),
+            'r' => self.check_keyword(1, "eturn", Keyword::Return),
+            's' => self.check_keyword(1, "elf", Keyword::Self_),
+
+            // for any branching path, check for the existence of a second letter
+            // a single letter lexeme is still a valid identifier
+            'f' if self.current_length() > 1 =>
+                match self.source_at(self.start + 1) {
+                    'a' => self.check_keyword(2, "lse", Keyword::False),
+                    'o' => self.check_keyword(2, "r", Keyword::For),
+                    _ => TokenType::Identifier
+                }
+            'i' if self.current_length() > 1 && self.source_at(self.start + 1) == 'm' =>
+                self.check_keyword(2, "port", Keyword::Import),
+            'i' => self.check_keyword(1, "f", Keyword::If),
+            'l' if self.current_length() > 1 =>
+                match self.source_at(self.start + 1) {
+                    'e' => self.check_keyword(2, "t", Keyword::Let),
+                    'a' => self.check_keyword(2, "mbda", Keyword::Lambda),
+                    _ => TokenType::Identifier
+                }
+            'n' if self.current_length() > 1 && self.source_at(self.start + 1) == 'o' =>
+                match self.source_at(self.start + 2) {
+                    'n' => self.check_keyword(3, "e", Keyword::None),
+                    _ => self.check_keyword(2, "t", Keyword::Let)
+                }
             _ => TokenType::Identifier
         }
     }
 
-    fn check_keyword(
-        &self,
-        start: usize,
-        length: usize,  // TODO: see if we need this (instead of using `rest.length`)
-        rest: &str,
-        keyword_type: TokenType,
-    ) -> TokenType {
-        let same_length = self.current - self.start == start + length;
-        let same_str = {
-            let source_str = str::from_utf8(&self.source.as_bytes()[self.start + start..length]).unwrap();
-            source_str == rest
+    fn check_keyword(&self, start: usize, rest: &str, keyword_type: Keyword) -> TokenType {
+        // We need to check if the lengths are the same, because the lexeme will be derived from
+        // the keyword's length, which means we might only get a subset of the lexeme if the
+        // keyword is shorter than the lexeme. Without this additional check, the comparison might
+        // return true if the lexeme contains but is not equal to the keyword.
+        let same_length = self.current_length() == start + rest.len();
+
+        let same_rest = {
+            let lexeme_rest = str::from_utf8(&self.source.as_bytes()[self.start + start..rest.len()])
+                .unwrap();
+            lexeme_rest == rest
         };
 
-        if same_length && same_str {
-            keyword_type
+        if same_length && same_rest {
+            TokenType::Keyword(keyword_type)
         } else {
             TokenType::Identifier
         }
@@ -190,6 +212,10 @@ impl Scanner {
 
     pub fn source(&self) -> &str {
         self.source.as_str()
+    }
+
+    fn current_length(&self) -> usize {
+        self.current - self.start
     }
 
     fn make_token(&self, token_type: TokenType) -> Token {
