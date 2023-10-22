@@ -19,6 +19,7 @@ impl Scanner {
     pub fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
         self.start = self.current;
+
         if self.is_at_end() {
             self.make_token(TokenType::Eof)
         } else {
@@ -32,6 +33,7 @@ impl Scanner {
                 '.' => self.make_token(TokenType::Dot),
                 '+' => self.make_token(TokenType::Arithmetic(Arithmetic::Plus)),
                 '*' => self.make_token(TokenType::Arithmetic(Arithmetic::Times)),
+                '/' => self.make_token(TokenType::Arithmetic(Arithmetic::Slash)),
                 '%' => self.make_token(TokenType::Arithmetic(Arithmetic::Modulo)),
                 '-' => self.make_token(TokenType::Arithmetic(Arithmetic::Minus)),
                 ';' => self.make_token(TokenType::Semicolon),
@@ -44,6 +46,16 @@ impl Scanner {
                 '&' => self.make_token(TokenType::Bitwise(Bitwise::BAnd)),
                 '|' => self.make_token(TokenType::Bitwise(Bitwise::BOr)),
                 '^' => self.make_token(TokenType::Bitwise(Bitwise::BXor)),
+                '<' if self.match_char('<') =>
+                    self.make_token(TokenType::Bitwise(Bitwise::LeftShift)),
+                '<' => self.make_token_or_else(
+                    '=', TokenType::Comparison(Comparison::LessEqual),
+                    TokenType::Comparison(Comparison::Less)),
+                '>' if self.match_char('>') =>
+                    self.make_token_or_else('>', TokenType::Bitwise(Bitwise::URightShift),
+                                            TokenType::Bitwise(Bitwise::RightShift)),
+                '>' => self.make_token_or_else('=', TokenType::Comparison(Comparison::GreaterEqual),
+                                               TokenType::Comparison(Comparison::Greater)),
                 '"' => self.scan_string(),
                 c if is_digit(c) => self.scan_number(),
                 c if is_alpha(c) => self.scan_identifier(),
@@ -159,11 +171,7 @@ impl Scanner {
     }
 
     fn match_char(&mut self, expected: char) -> bool {
-        if self.is_at_end() {
-            false
-        } else if self.peek() != expected {
-            false
-        } else {
+        !self.is_at_end() && self.peek() == expected && {
             self.current += 1;
             true
         }
